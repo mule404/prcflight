@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger" xmlns:sys-flight-booking="http://www.mulesoft.org/schema/mule/sys-flight-booking"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/sys-flight-booking http://www.mulesoft.org/schema/mule/sys-flight-booking/current/mule-sys-flight-booking.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd">
+	<flow name="getFlights" doc:id="af0570f0-3acb-4358-823b-c325da3686ef" >
+		<json-logger:logger doc:name="start process layer" doc:id="34b4f468-452a-47e9-b715-07e508d7b4d4" config-ref="JSON_Logger_Config" message="start process layer"/>
+		<set-variable value="#[attributes.queryParams.from]" doc:name="source" doc:id="71d6dac2-2e3c-4cfe-9141-0eaef26d80d8" variableName="source" />
+		<set-variable value="#[attributes.queryParams.to]" doc:name="dest" doc:id="74b33b3b-07dd-4a23-8139-f16144c02b2a" variableName="dest" />
+		<sys-flight-booking:get-flights doc:name="Get flights" doc:id="3653f520-9adc-4a11-84f9-0bba34f95b3d" config-ref="Sys_flightBooking_Config" from="#[attributes.queryParams.from]" to="#[attributes.queryParams.to]"/>
+		<set-variable value="#[payload]" doc:name="storing payload" doc:id="e2c52269-81b1-4621-a421-141e6d473b0f" variableName="data"/>
+		<ee:transform doc:name="connectingFlights" doc:id="5d1e5996-f68c-474d-b0b4-1a6a35ff6a4b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload filter ((item,index)-> item.fromairport ==vars.source and item.toairport ==vars.dest)
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="584557d2-8e8b-450f-a50c-93e9b9f3be92" >
+			<when expression="#[!isEmpty (payload)]">
+				<json-logger:logger doc:name="inside direct payload  " doc:id="0b11e2a7-ce7c-4a81-b614-9017258118f2" config-ref="JSON_Logger_Config" message="inside direct payload  "/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="44b43249-9d96-471a-9ab0-c503a0e43de2">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.data map ( datum , indexOfDatum ) -> {
+	airline: datum.airline,
+	flightCode: datum.flightCode,
+	fromAirportCode: datum.fromAirportCode,
+	toAirportCode: datum.toAirportCode,
+	departureDate: datum.departureDate,
+	emptySeats: datum.emptySeats,
+	totalSeats: datum.totalSeats,
+	planeType: datum.planeType
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<ee:transform doc:name="Transform Message" doc:id="eec2f1fe-7eee-4ffa-9ce1-bc9fd4a8d044" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import * from dw::core::Arrays
+
+var sources = vars.data filter ((item,index)-> item.fromairport ==vars.source )
+var dests = vars.data filter ((item,index)->item.toairport ==vars.dest)
+---
+join (sources, dests , (sources)-> sources.toairport , (dests)-> dests.fromairport)]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<ee:transform doc:name="Transform Message" doc:id="1a20fcc3-19ae-4173-958d-30d853bc460e">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+"connecting Flights available":payload map (item,index)->{
+
+"first flight":payload[0].l,
+"second flight": payload[0].r
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<json-logger:logger doc:name="inside connecting payload" doc:id="68baa4b2-9a28-4f3c-a692-6f61d274c613" config-ref="JSON_Logger_Config" message="inside connecting payload"/>
+				<choice doc:name="Choice" doc:id="31dc43d0-5c0a-4c6e-a831-53f0e4cdb3e7" >
+					<when expression='#[isEmpty (payload."connecting Flights available")]'>
+						<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;"message":"There are no flights available or source/destination is incorrect"&#10;}]' doc:name="Set Payload" doc:id="2edee663-47bb-4f9d-a86a-9845120351a6" />
+					</when>
+					<otherwise>
+						<json-logger:logger doc:name="data available" doc:id="50178184-f90e-4384-95a4-74d5753fb45e" config-ref="JSON_Logger_Config" message="data available"/>
+					</otherwise>
+				</choice>
+			</otherwise>
+		</choice>
+		<json-logger:logger doc:name="end process layer" doc:id="a2fec354-4373-49bd-921c-508e4a1c2422" config-ref="JSON_Logger_Config" message="end process layer"/>
+	</flow>
+	<flow name="bookFlight" doc:id="accc7317-6deb-4beb-92d9-27dbfc3d9a76" >
+		<json-logger:logger doc:name="start booking process layer" doc:id="8b9eeb54-bd14-4097-9973-f8c547b8de21" config-ref="JSON_Logger_Config" message="start booking process layer"/>
+		<sys-flight-booking:create-flight doc:name="Create flight" doc:id="cba53473-7aa4-4bc2-ad20-017d35b1f580" config-ref="Sys_flightBooking_Config"/>
+		<json-logger:logger doc:name="end of process layer" doc:id="c1ccfcf3-02fb-4ea3-8c61-f85387c2048e" config-ref="JSON_Logger_Config" message="end of process layer"/>
+	</flow>
+</mule>
