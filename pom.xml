@@ -63,7 +63,10 @@
 				</executions>
 				<configuration>
 					<coverage>
-						<runCoverage>true</runCoverage>
+					<ignoreFiles>
+	  <ignoreFile>new-test-suite.xml</ignoreFile>
+  </ignoreFiles>
+						
 						<formats>
 							<format>html</format>
 						</formats>
