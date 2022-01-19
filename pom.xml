@@ -32,6 +32,20 @@
 				<extensions>true</extensions>
 				<configuration>
 					<classifier>mule-application</classifier>
+					<cloudHubDeployment>
+		<uri>https://anypoint.mulesoft.com</uri>
+		<muleVersion>4.4.0</muleVersion>
+		<username>apiseroB48</username>
+		<password>apiseroB48</password>
+		
+		<environment>Sandbox</environment>
+		<applicationName>prcflightbook</applicationName>
+		<businessGroup>apisero</businessGroup>
+		<workerType>micro</workerType>
+		<workers>1</workers>
+		<objectStoreV2>true</objectStoreV2>
+	</cloudHubDeployment>
+<classifier>mule-application</classifier>
 				</configuration>
 			</plugin>
 			<plugin>
