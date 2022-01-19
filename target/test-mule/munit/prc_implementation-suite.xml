@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="prc_implementation-suite.xml" />
+	<munit:test name="getFlights-test" doc:id="9acbcdc7-f49f-44fd-ad23-b5df6dfe9978" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Get flights" doc:id="66b1e77e-92fc-4e0c-8cf8-e60f2ef1e366" processor="sys-flight-booking:get-flights">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="3653f520-9adc-4a11-84f9-0bba34f95b3d" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://getFlightstest\mock_payload.dwl')]" mediaType="application/json" />
+					<munit-tools:attributes value="#[readUrl('classpath://getFlightstest\mock_attributes.dwl')]" />
+					<munit-tools:variables >
+						<munit-tools:variable key="outboundHeaders" value="#[readUrl('classpath://getFlightstest\mock_variable_.dwl')]" />
+						<munit-tools:variable key="source" value="#[output application/java --- readUrl('classpath://getFlightstest\mock_variable_1.dwl')]" mediaType="application/java" encoding="UTF-8" />
+						<munit-tools:variable key="dest" value="#[output application/java --- readUrl('classpath://getFlightstest\mock_variable_2.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="ef110a67-222c-446c-a398-2c85285b35d2" >
+				<munit:payload value="#[readUrl('classpath://getFlightstest\set-event_payload.dwl')]" encoding="UTF-8" />
+				<munit:attributes value="#[readUrl('classpath://getFlightstest\set-event_attributes.dwl')]" />
+				<munit:variables >
+					<munit:variable key="outboundHeaders" value="#[readUrl('classpath://getFlightstest\set-event_variable_.dwl')]" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to getFlights" doc:id="8e734fff-9529-481b-a534-f2762a94a3a7" name="getFlights"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="a39861ea-8551-470f-8bf8-4e82aec4bce2" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import getFlightstest::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

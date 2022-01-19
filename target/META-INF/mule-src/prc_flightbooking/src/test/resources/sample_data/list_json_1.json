@@ -1,0 +1,52 @@
+[
+  {
+    "l": {
+      "emptyseats": 93,
+      "planetype": "omnis",
+      "flightcode": "dicta",
+      "fromairport": "amet,",
+      "toairport": "in",
+      "departuredate": "autem",
+      "airline": "non",
+      "totalseats": 7
+    },
+    "r": {
+      "emptyseats": 71,
+      "planetype": "velit",
+      "flightcode": "anim",
+      "fromairport": "proident,",
+      "toairport": "natus",
+      "departuredate": "voluptatem",
+      "airline": "tempora",
+      "totalseats": 92
+    },
+    "": {
+      
+    }
+  },
+  {
+    "l": {
+      "emptyseats": 66,
+      "planetype": "nisi",
+      "flightcode": "",
+      "fromairport": "reprehenderit",
+      "toairport": "consequatur,",
+      "departuredate": "ab",
+      "airline": "Duis",
+      "totalseats": 86
+    },
+    "r": {
+      "emptyseats": 6,
+      "planetype": "eaque",
+      "flightcode": "iure",
+      "fromairport": "sed",
+      "toairport": "culpa",
+      "departuredate": "in",
+      "airline": "ut",
+      "totalseats": 16
+    },
+    "": {
+      
+    }
+  }
+]

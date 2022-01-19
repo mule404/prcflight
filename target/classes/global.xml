@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger"
+	xmlns:sys-flight-booking="http://www.mulesoft.org/schema/mule/sys-flight-booking"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sys-flight-booking http://www.mulesoft.org/schema/mule/sys-flight-booking/current/mule-sys-flight-booking.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+	
+	<http:listener-config name="flights-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+	<sys-flight-booking:config name="Sys_flightBooking_Config" doc:name="Sys_flightBooking Config" doc:id="4e197034-1815-4810-a213-ad8ae6da132a" property_host="${db.host}" property_port="${db.port}" property_protocol="${db.protocol}" property_basePath="${db.basepath}" property_responseTimeout="50000"/>
+	<json-logger:config name="JSON_Logger_Config" doc:name="JSON Logger Config" doc:id="3fb0c1d9-c4d0-4bf3-b5ea-fd1fb2bae965" environment="${mule.env}" />
+	<configuration-properties doc:name="Configuration properties" doc:id="591d0c90-5756-4498-b811-d0ccf2f52cdb" file="config.yaml" />
+	<api-gateway:autodiscovery apiId="17575032" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="6939fa6e-858f-43fa-b39e-82358d9cde20" flowRef="flights-main" />
+	<error-handler name="glberrorError_Handler" doc:id="9c8ac0bc-5fcf-4234-bb17-4039acbf9e2e" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="d71f1390-ea64-4409-aefb-79f0b9de19d7" >
+			<choice doc:name="Choice" doc:id="99239414-12fc-4251-9368-0c655cdcaa1e" >
+				<when expression="#[error.errorType.namespace=='APIKIT']" >
+					<choice doc:name="Choice" doc:id="dc6c9fa1-bc0b-42f0-a92b-1acab7a073d2" >
+						<when expression="#[error.errorType.identifier=='BAD_REQUEST']" >
+							<ee:transform doc:name="APIKIT:BAD_REQUEST" doc:id="44ecb057-a9f3-42bd-80cd-e1c23bde808f" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+								</ee:message>
+								<ee:variables >
+									<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+								</ee:variables>
+							</ee:transform>
+						</when>
+						<when expression='#[error.errorType.identifier== "NOT_FOUND"]' >
+							<ee:transform doc:name="APIKIT:RESOURCE_NOT_FOUND" doc:id="7682644a-81f9-4c70-9d9b-3fa27a4b1443" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+						</when>
+						<when expression='#[error.errorType.identifier=="METHOD_NOT_ALLOWED"]' >
+							<ee:transform doc:name="APIKIT:METHOD_NOT_ALLOWED" doc:id="0d2d5cb8-8486-4886-a295-aee6a68669f2" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+						</when>
+						<when expression='#[error.errorType.identifier== "NOT_ACCEPTABLE"]' >
+							<ee:transform doc:name="APIKIT:NOT_ACCEPTABLE" doc:id="52150b6a-a9e3-4dd0-950e-f71fec57311a" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+						</when>
+						<when expression='#[error.errorType.identifier=="CONNECTIVITY"]' >
+							<ee:transform doc:name="APIKIT:UNSUPPORTED_MEDIA" doc:id="fae41178-5370-4815-93e3-3ece4e61df2d" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Internal issue"}]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+						</when>
+						<when expression='#[error.errorType.identifier=="TIMEOUT"]' >
+							<ee:transform doc:name="APIKIT:NOT_IMPLEMENTED" doc:id="af2ab654-fb7b-4edd-89ea-d64415d987cb" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "TIMEOUT"}]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+						</when>
+						<otherwise >
+							<ee:transform doc:name="Transform Message" doc:id="d59c0699-8f04-4f69-ad04-636913f733b8" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "internal error"
+}]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+						</otherwise>
+					</choice>
+				</when>
+				<when expression='#[error.errorType.namespace =="SYS-FLIGHT-BOOKING"]' >
+					<ee:transform doc:name="db:Any" doc:id="27e149ab-0be3-4103-9b7b-5efa84708be6" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "internal error"
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</when>
+			</choice>
+		</on-error-propagate>
+	</error-handler>
+	
+	
+	
+	
+</mule>

@@ -1,0 +1,44 @@
+#%RAML 1.0
+title: flights
+
+description: Flight booking with get and post methods
+
+/flights:
+  get:
+    description: Retreive the list of all Flights
+    queryParameters:
+      from: 
+        required: true
+        type: string     
+      to:
+        required: true
+        type: string
+      departureDate:
+        required: false
+        type: date-only
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+              !include example/flights-example.json
+            
+  post:
+    description: Book a Flight
+    body:
+      application/json:
+        example:
+          {
+            "FlightID" : "6E6693",
+            "Passengers": ["Ramesh","Suresh"]
+          }
+    responses:
+      201:
+        body:
+          application/json:
+            example:
+              {
+                "message": "Flight Booked!",
+                "Passengers Details": ["Ramesh","Suresh"],
+                "PNR": "ABCD543"
+              }
