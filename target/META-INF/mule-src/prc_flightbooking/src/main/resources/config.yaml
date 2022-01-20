@@ -3,7 +3,7 @@ json.logger.application.version: "1.0"
 mule.env: "dev"
 
 db:
-  host: "sysflightbooking.us-e2.cloudhub.io"
+  host: "sysflightbook.us-e2.cloudhub.io"
   port: "80"
   protocol: "HTTP"
   basepath: "/api/"
